@@ -11,15 +11,25 @@ import { Toaster } from "react-hot-toast";
 import { useUserStore } from "./stores/useUserStore";
 import { useEffect } from "react";
 import LoadingSpinner from "./components/LoadingSpinner";
+import CartPage from "./pages/CartPage";
+import { useCartStore } from "./stores/useCartStore";
 
 function App() {
 	const { user, checkAuth, checkingAuth } = useUserStore();
+	const { getCartItems } = useCartStore();
 	useEffect(() => {
 		checkAuth();
 	}, [checkAuth]);
 
+	useEffect(() => {
+		if (!user) return;
+
+		getCartItems();
+	}, [getCartItems, user]);
+
 	if (checkingAuth) return <LoadingSpinner />;
-  return (
+
+	return (
 		<div className='min-h-screen bg-gray-900 text-white relative overflow-hidden'>
 			{/* Background gradient */}
 			<div className='absolute inset-0 overflow-hidden'>
@@ -39,11 +49,13 @@ function App() {
 						element={user?.role === "admin" ? <AdminPage /> : <Navigate to='/login' />}
 					/>
 					<Route path='/category/:category' element={<CategoryPage />} />
+					<Route path='/cart' element={user ? <CartPage /> : <Navigate to='/login' />} />
+					
 				</Routes>
 			</div>
 			<Toaster />
-    </div>
-  )
+		</div>
+	);
 }
 
-export default App
+export default App;
