@@ -14,23 +14,29 @@ const OrderSummary = () => {
 	const formattedSavings = savings.toFixed(2);
 
 	const handlePayment = async () => {
-		const res = await axios.post("/payments/create-checkout-session", {
-			products: cart,
-			couponCode: coupon ? coupon.code : null,
-		});
+		try {
+			const res = await axios.post("/payments/create-checkout-session", {
+				products: cart,
+				couponCode: coupon ? coupon.code : null,
+			});
 
-		const session = res.data;
+			const { url } = res.data;
 
-		// ✅ NEW Stripe way
-		window.location.href = session.url;
-		
-		/*const result = await stripe.redirectToCheckout({
-			sessionId: session.id,
-		});
+			if (!url) {
+				throw new Error("Stripe Checkout URL not returned");
+			}
 
-		if (result.error) {
-			console.error("Error:", result.error);
-		}*/
+			// Redirect to Stripe
+			window.location.href = url;
+		} catch (error) {
+			console.error("Checkout error:", error);
+
+			// Optional: user-friendly UI feedback
+			alert(
+				error.response?.data?.message ||
+				"Something went wrong while starting checkout. Please try again."
+			);
+		}
 	};
 
 	return (
